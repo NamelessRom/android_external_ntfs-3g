@@ -183,7 +183,7 @@ static const char *usage_msg =
 
 static const char ntfs_bad_reparse[] = "unsupported reparse point";
 
-#ifdef FUSE_INTERNAL
+#if defined(FUSE_INTERNAL) && !defined(BUILDING_LIBRARY)
 int drop_privs(void);
 int restore_privs(void);
 #else

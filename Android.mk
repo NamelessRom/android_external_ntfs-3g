@@ -14,7 +14,7 @@ LOCAL_MODULE_TAGS := eng
 LOCAL_SYSTEM_SHARED_LIBRARIES := libc libcutils
 include $(BUILD_STATIC_LIBRARY)
 
-# libntfs-3g
+# libntfs-3g_static
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES :=libntfs-3g/acls.c libntfs-3g/attrib.c libntfs-3g/attrlist.c \
 	libntfs-3g/bitmap.c libntfs-3g/bootsect.c libntfs-3g/cache.c libntfs-3g/collate.c \
@@ -26,9 +26,10 @@ LOCAL_SRC_FILES :=libntfs-3g/acls.c libntfs-3g/attrib.c libntfs-3g/attrlist.c \
 	libntfs-3g/unix_io.c libntfs-3g/volume.c libntfs-3g/realpath.c
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include/fuse-lite  $(LOCAL_PATH)/include/ntfs-3g
 LOCAL_CFLAGS := -O2 -g -W -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64  -DHAVE_CONFIG_H
-LOCAL_MODULE := libntfs-3g
+LOCAL_MODULE := libntfs-3g_static
 LOCAL_MODULE_TAGS := eng
 LOCAL_SYSTEM_SHARED_LIBRARIES := libc libcutils
+LOCAL_STATIC_LIBRARIES := libfuse-lite libntfs-3g_static
 include $(BUILD_STATIC_LIBRARY)
 
 #ntfs-3g
@@ -41,13 +42,26 @@ LOCAL_CFLAGS := -O2 -g -W -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHAV
 LOCAL_MODULE := mount.ntfs
 LOCAL_MODULE_TAGS := eng
 LOCAL_SYSTEM_SHARED_LIBRARIES := libc
-LOCAL_STATIC_LIBRARIES := libfuse-lite libntfs-3g
+LOCAL_STATIC_LIBRARIES := libfuse-lite libntfs-3g_static
 include $(BUILD_EXECUTABLE)
 
-# ntfsprogs - ntfsfix
 include $(CLEAR_VARS)
-LOCAL_SRC_FILES := ntfsprogs/ntfsfix.c ntfsprogs/utils.c
+LOCAL_SRC_FILES := src/ntfs-3g.c src/ntfs-3g_common.c
 
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/include/fuse-lite $(LOCAL_PATH)/include/ntfs-3g \
+			$(LOCAL_PATH)/androidglue/include $(LOCAL_PATH)/src
+LOCAL_CFLAGS := -O2 -g -W -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHAVE_CONFIG_H -DBUILDING_LIBRARY -Dmain=mount_ntfs3g_main
+LOCAL_MODULE := libntfs3g_mount_static
+LOCAL_MODULE_TAGS := eng
+LOCAL_SYSTEM_SHARED_LIBRARIES := libc
+LOCAL_STATIC_LIBRARIES := libfuse-lite libntfs-3g_static
+include $(BUILD_STATIC_LIBRARY)
+
+# ntfsprogs - ntfsfix
+ntfsfix_src_files := ntfsprogs/ntfsfix.c
+
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES := $(ntfsfix_src_files)  ntfsprogs/utils.c
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include/fuse-lite $(LOCAL_PATH)/include/ntfs-3g \
 			$(LOCAL_PATH)/androidglue/include $(LOCAL_PATH)/ntfsprogs/
 LOCAL_CFLAGS := -O2 -g -W -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHAVE_CONFIG_H
@@ -55,13 +69,24 @@ LOCAL_MODULE := fsck.ntfs
 LOCAL_MODULE_TAGS := eng
 LOCAL_SHARED_LIBRARIES := libext2_uuid
 LOCAL_SYSTEM_SHARED_LIBRARIES := libc
-LOCAL_STATIC_LIBRARIES := libfuse-lite libntfs-3g
+LOCAL_STATIC_LIBRARIES := libfuse-lite libntfs-3g_static
 include $(BUILD_EXECUTABLE)
 
-# ntfsprogs - mkntfs
 include $(CLEAR_VARS)
-LOCAL_SRC_FILES := ntfsprogs/attrdef.c ntfsprogs/boot.c ntfsprogs/sd.c ntfsprogs/mkntfs.c ntfsprogs/utils.c
+LOCAL_SRC_FILES := $(ntfsfix_src_files)
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/include/fuse-lite $(LOCAL_PATH)/include/ntfs-3g \
+			$(LOCAL_PATH)/androidglue/include $(LOCAL_PATH)/ntfsprogs/
+LOCAL_CFLAGS := -O2 -g -W -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHAVE_CONFIG_H -Dmain=fsck_ntfs3g_main
+LOCAL_MODULE := libntfs3g_fsck_static
+LOCAL_MODULE_TAGS := eng
+LOCAL_STATIC_LIBRARIES := libfuse-lite libntfs-3g_static
+include $(BUILD_STATIC_LIBRARY)
 
+# ntfsprogs - mkntfs
+mkntfs_src_files := ntfsprogs/attrdef.c ntfsprogs/boot.c ntfsprogs/sd.c ntfsprogs/mkntfs.c ntfsprogs/utils.c
+
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES := $(mkntfs_src_files)
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include/fuse-lite $(LOCAL_PATH)/include/ntfs-3g \
 			$(LOCAL_PATH)/androidglue/include $(LOCAL_PATH)/ntfsprogs/ \
 			external/e2fsprogs/lib
@@ -69,5 +94,17 @@ LOCAL_CFLAGS := -O2 -g -W -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHAV
 LOCAL_MODULE := mkfs.ntfs
 LOCAL_MODULE_TAGS := eng
 LOCAL_SYSTEM_SHARED_LIBRARIES := libc
-LOCAL_STATIC_LIBRARIES := libfuse-lite libntfs-3g
+LOCAL_STATIC_LIBRARIES := libfuse-lite libntfs-3g_static
 include $(BUILD_EXECUTABLE)
+
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES := $(mkntfs_src_files)
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/include/fuse-lite $(LOCAL_PATH)/include/ntfs-3g \
+			$(LOCAL_PATH)/androidglue/include $(LOCAL_PATH)/ntfsprogs/ \
+			external/e2fsprogs/lib
+LOCAL_CFLAGS := -O2 -g -W -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DHAVE_CONFIG_H -Dmain=mkfs_ntfs3g_main
+LOCAL_MODULE := libntfs3g_mkfs_main
+LOCAL_MODULE_TAGS := eng
+LOCAL_SYSTEM_SHARED_LIBRARIES := libc
+LOCAL_STATIC_LIBRARIES := libfuse-lite libntfs-3g_static
+include $(BUILD_STATIC_LIBRARY)
